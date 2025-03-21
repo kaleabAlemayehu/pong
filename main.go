@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 const SCREEN_WIDTH int32 = 800
 const SCREEN_HEIGHT int32 = 450
+const SCORE_LIMIT int32 = 5
 
 type score struct {
 	red  int32
@@ -136,10 +138,30 @@ func handleMovement(red *rl.Rectangle, blue *rl.Rectangle) {
 }
 
 func (b *ball) reset() {
+	if SCORE.red >= SCORE_LIMIT {
+		rl.BeginDrawing()
+		rl.ClearBackground(rl.Black)
+		rl.DrawText("RED WINS!!", int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 32, rl.Red)
+		rl.EndDrawing()
+		rl.WaitTime(2)
+		os.Exit(0)
+	}
+
+	if SCORE.blue >= SCORE_LIMIT {
+		rl.BeginDrawing()
+		rl.ClearBackground(rl.Black)
+		rl.DrawText("BLUE WINS!!", int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 32, rl.Blue)
+		rl.EndDrawing()
+		rl.WaitTime(2)
+		os.Exit(0)
+	}
+
 	rl.BeginDrawing()
+	rl.ClearBackground(rl.Black)
 	rl.DrawText(fmt.Sprintf("RED: %v |<=>| BLUE: %v", SCORE.red, SCORE.blue), int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 24, rl.White)
 	rl.EndDrawing()
 	rl.WaitTime(2.5)
+
 	b.Position = rl.Vector2{
 		X: float32(SCREEN_WIDTH) / 2,
 		Y: float32(SCREEN_HEIGHT) / 2,
