@@ -15,6 +15,12 @@ func main() {
 		Width:  10,
 		Height: 100,
 	}
+	blue := rl.Rectangle{
+		X:      float32(SCREEN_WIDTH) - 10,
+		Y:      200,
+		Width:  10,
+		Height: 100,
+	}
 	rl.SetTargetFPS(60)
 
 	for !rl.WindowShouldClose() {
@@ -22,22 +28,32 @@ func main() {
 		if rl.IsKeyDown(rl.KeyJ) {
 			red.Y = red.Y + 2
 		}
-
 		if rl.IsKeyDown(rl.KeyK) {
 			red.Y = red.Y - 2
 		}
-
 		if rl.IsKeyDown(rl.KeyH) {
 			red.X = red.X - 2
 		}
-
 		if rl.IsKeyDown(rl.KeyL) {
 			red.X = red.X + 2
 		}
 
+		if rl.IsKeyDown(rl.KeyA) {
+			blue.X = blue.X - 2
+		}
+		if rl.IsKeyDown(rl.KeyF) {
+			blue.X = blue.X + 2
+		}
+		if rl.IsKeyDown(rl.KeyS) {
+			blue.Y = blue.Y + 2
+		}
+		if rl.IsKeyDown(rl.KeyD) {
+			blue.Y = blue.Y - 2
+		}
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.Black)
 		rl.DrawRectangleRec(red, rl.Red)
+		rl.DrawRectangleRec(blue, rl.Blue)
 		rl.EndDrawing()
 	}
 }
