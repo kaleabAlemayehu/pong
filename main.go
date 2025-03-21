@@ -62,8 +62,14 @@ func main() {
 			ball.DirectionY = -3.0
 		}
 
-		log.Printf("ball positionX %v\n", ball.Position.X)
-		log.Printf("ball positionY %v\n", ball.Position.Y)
+		// log.Printf("ball positionX %v\n", ball.Position.X)
+		// log.Printf("ball positionY %v\n", ball.Position.Y)
+
+		// log.Printf("red positionX %v\n", red.X)
+		// log.Printf("red positionY %v\n", red.Y)
+
+		// log.Printf("blue positionX %v\n", blue.X)
+		// log.Printf("blue positionY %v\n", blue.Y)
 
 		if rl.CheckCollisionCircleRec(ball.Position, 10.0, red) {
 			log.Printf("red hit me\n")
@@ -73,6 +79,8 @@ func main() {
 			log.Printf("blue hit me")
 			ball.DirectionX = -3.0
 		}
+
+		// INFO: drawing start
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.Black)
 		rl.DrawRectangleRec(red, rl.Red)
@@ -84,28 +92,46 @@ func main() {
 
 func handleMovement(red *rl.Rectangle, blue *rl.Rectangle) {
 	if rl.IsKeyDown(rl.KeyJ) {
-		red.Y = red.Y + 2
+		if red.Y < float32(SCREEN_HEIGHT)-red.Height {
+			red.Y = red.Y + 2
+		}
 	}
 	if rl.IsKeyDown(rl.KeyK) {
-		red.Y = red.Y - 2
+		if red.Y > 0 {
+			red.Y = red.Y - 2
+		}
 	}
 	if rl.IsKeyDown(rl.KeyH) {
-		red.X = red.X - 2
+		if red.X > 0 {
+			red.X = red.X - 2
+		}
 	}
 	if rl.IsKeyDown(rl.KeyL) {
-		red.X = red.X + 2
+		if red.X < float32(SCREEN_WIDTH)-red.Width {
+			red.X = red.X + 2
+		}
 	}
 
 	if rl.IsKeyDown(rl.KeyA) {
-		blue.X = blue.X - 2
+		if blue.X > 0 {
+			blue.X = blue.X - 2
+		}
 	}
+
 	if rl.IsKeyDown(rl.KeyF) {
-		blue.X = blue.X + 2
+		if blue.X < float32(SCREEN_WIDTH)-blue.Width {
+			blue.X = blue.X + 2
+		}
 	}
+
 	if rl.IsKeyDown(rl.KeyS) {
-		blue.Y = blue.Y + 2
+		if blue.Y < float32(SCREEN_HEIGHT)-blue.Height {
+			blue.Y = blue.Y + 2
+		}
 	}
 	if rl.IsKeyDown(rl.KeyD) {
-		blue.Y = blue.Y - 2
+		if blue.Y > 0 {
+			blue.Y = blue.Y - 2
+		}
 	}
 }
