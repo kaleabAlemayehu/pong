@@ -1,6 +1,10 @@
 package main
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	"log"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 const SCREEN_WIDTH int32 = 800
 const SCREEN_HEIGHT int32 = 450
@@ -21,39 +25,55 @@ func main() {
 		Width:  10,
 		Height: 100,
 	}
+	ball := rl.Vector2{
+		X: float32(SCREEN_WIDTH) / 2,
+		Y: float32(SCREEN_HEIGHT) / 2,
+	}
 	rl.SetTargetFPS(60)
-
 	for !rl.WindowShouldClose() {
-
-		if rl.IsKeyDown(rl.KeyJ) {
-			red.Y = red.Y + 2
-		}
-		if rl.IsKeyDown(rl.KeyK) {
-			red.Y = red.Y - 2
-		}
-		if rl.IsKeyDown(rl.KeyH) {
-			red.X = red.X - 2
-		}
-		if rl.IsKeyDown(rl.KeyL) {
-			red.X = red.X + 2
+		handleMovement(red, blue)
+		if rl.CheckCollisionCircleRec(ball, 10.0, red) {
+			log.Printf("red hit me")
 		}
 
-		if rl.IsKeyDown(rl.KeyA) {
-			blue.X = blue.X - 2
+		if rl.CheckCollisionCircleRec(ball, 10.0, blue) {
+			log.Printf("blue hit me")
 		}
-		if rl.IsKeyDown(rl.KeyF) {
-			blue.X = blue.X + 2
-		}
-		if rl.IsKeyDown(rl.KeyS) {
-			blue.Y = blue.Y + 2
-		}
-		if rl.IsKeyDown(rl.KeyD) {
-			blue.Y = blue.Y - 2
-		}
+
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.Black)
 		rl.DrawRectangleRec(red, rl.Red)
 		rl.DrawRectangleRec(blue, rl.Blue)
+		rl.DrawCircleV(ball, 10.0, rl.White)
 		rl.EndDrawing()
 	}
+}
+
+func handleMovement(red rl.Rectangle, blue rl.Rectangle) {
+	if rl.IsKeyDown(rl.KeyJ) {
+		red.Y = red.Y + 2
+	}
+	if rl.IsKeyDown(rl.KeyK) {
+		red.Y = red.Y - 2
+	}
+	if rl.IsKeyDown(rl.KeyH) {
+		red.X = red.X - 2
+	}
+	if rl.IsKeyDown(rl.KeyL) {
+		red.X = red.X + 2
+	}
+
+	if rl.IsKeyDown(rl.KeyA) {
+		blue.X = blue.X - 2
+	}
+	if rl.IsKeyDown(rl.KeyF) {
+		blue.X = blue.X + 2
+	}
+	if rl.IsKeyDown(rl.KeyS) {
+		blue.Y = blue.Y + 2
+	}
+	if rl.IsKeyDown(rl.KeyD) {
+		blue.Y = blue.Y - 2
+	}
+
 }
