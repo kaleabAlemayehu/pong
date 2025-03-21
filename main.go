@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -8,6 +9,11 @@ import (
 
 const SCREEN_WIDTH int32 = 800
 const SCREEN_HEIGHT int32 = 450
+
+type score struct {
+	red  int32
+	blue int32
+}
 
 type ball struct {
 	Position   rl.Vector2
@@ -18,6 +24,7 @@ type ball struct {
 func main() {
 	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "pong")
 	defer rl.CloseWindow()
+	var SCORE score
 
 	red := rl.Rectangle{
 		X:      0,
@@ -42,17 +49,19 @@ func main() {
 	}
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {
-
 		handleMovement(&red, &blue)
-
 		// INFO:  make the ball occilate
 		ball.Position.X = ball.Position.X + float32(ball.DirectionX)
 		ball.Position.Y = ball.Position.Y + float32(ball.DirectionY)
 		if ball.Position.X <= 0 {
-			ball.DirectionX = 3.0
+			SCORE.blue = SCORE.blue + 1
+			// reset
+			ball.reset()
 		}
 		if ball.Position.X >= float32(SCREEN_WIDTH) {
-			ball.DirectionX = -3.0
+			SCORE.red = SCORE.red + 1
+			// reset
+			ball.reset()
 		}
 
 		if ball.Position.Y <= 0 {
@@ -86,6 +95,7 @@ func main() {
 		rl.DrawRectangleRec(red, rl.Red)
 		rl.DrawRectangleRec(blue, rl.Blue)
 		rl.DrawCircleV(ball.Position, 10.0, rl.White)
+		rl.DrawText(fmt.Sprintf("RED: %v |<=>| BLUE: %v", SCORE.red, SCORE.blue), int32(rl.GetScreenWidth()/2)-115, 0, 20, rl.White)
 		rl.EndDrawing()
 	}
 }
@@ -134,4 +144,12 @@ func handleMovement(red *rl.Rectangle, blue *rl.Rectangle) {
 			blue.Y = blue.Y - 2
 		}
 	}
+}
+func (b *ball) reset() {
+	b.Position = rl.Vector2{
+		X: float32(SCREEN_WIDTH) / 2,
+		Y: float32(SCREEN_HEIGHT) / 2,
+	}
+	b.DirectionX = -3.0
+	b.DirectionY = -3.0
 }
