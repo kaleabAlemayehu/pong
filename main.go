@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
-	rl "github.com/gen2brain/raylib-go/raylib"
+	"log"
 	"os"
+	"playground/raylib-go/client"
 	"playground/raylib-go/server"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 const SCREEN_WIDTH int32 = 800
@@ -25,9 +28,10 @@ type Player struct {
 }
 
 type Game struct {
-	Red  Player
-	Blue Player
-	Ball Ball
+	Red    Player
+	Blue   Player
+	Ball   Ball
+	Client *client.Client
 }
 
 func init() {
@@ -69,6 +73,7 @@ func NewGame() *Game {
 			},
 			IsActive: false,
 		},
+		Client: client.NewClient(),
 	}
 }
 
@@ -130,6 +135,10 @@ func (g *Game) handleMovement() {
 	if rl.IsKeyDown(rl.KeyJ) {
 		if g.Red.Position.Y < float32(SCREEN_HEIGHT)-g.Red.Size.Y/2 {
 			g.Red.Position.Y = g.Red.Position.Y + 2
+			_, err := g.Client.Conn.Write([]byte("hello from the key j\n"))
+			if err != nil {
+				log.Println("pressing j is not sending data")
+			}
 		}
 	}
 	if rl.IsKeyDown(rl.KeyK) {
