@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"os"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"os"
+	"playground/raylib-go/server"
 )
 
 const SCREEN_WIDTH int32 = 800
@@ -28,6 +28,10 @@ type Game struct {
 	Red  Player
 	Blue Player
 	Ball Ball
+}
+
+func init() {
+	server.StartServer()
 }
 
 func NewGame() *Game {
