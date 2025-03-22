@@ -131,12 +131,12 @@ func handleMovement() {
 		}
 	}
 	if rl.IsKeyDown(rl.KeyH) {
-		if RED.Position.X > RED.Size.X/2 {
+		if RED.Position.X > 0 {
 			RED.Position.X = RED.Position.X - 2
 		}
 	}
 	if rl.IsKeyDown(rl.KeyL) {
-		if RED.Position.X < float32(SCREEN_WIDTH)-RED.Size.X/2 {
+		if RED.Position.X < float32(SCREEN_WIDTH)-RED.Size.X {
 			RED.Position.X = RED.Position.X + 2
 		}
 	}
@@ -154,12 +154,12 @@ func handleMovement() {
 	}
 
 	if rl.IsKeyDown(rl.KeyS) {
-		if BLUE.Position.Y < float32(SCREEN_HEIGHT)-BLUE.Size.Y {
+		if BLUE.Position.Y < float32(SCREEN_HEIGHT)-BLUE.Size.Y/2 {
 			BLUE.Position.Y = BLUE.Position.Y + 2
 		}
 	}
 	if rl.IsKeyDown(rl.KeyD) {
-		if BLUE.Position.Y > 0 {
+		if BLUE.Position.Y > BLUE.Size.Y/2 {
 			BLUE.Position.Y = BLUE.Position.Y - 2
 		}
 	}
