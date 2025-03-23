@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"playground/raylib-go/client"
 	"playground/raylib-go/server"
 
@@ -14,77 +13,20 @@ const SCREEN_WIDTH int32 = 800
 const SCREEN_HEIGHT int32 = 450
 const SCORE_LIMIT int32 = 3
 
-type Ball struct {
-	Position rl.Vector2
-	Speed    rl.Vector2
-	Radius   float32
-	IsActive bool
-}
-
-type Player struct {
-	Position rl.Vector2
-	Size     rl.Vector2
-	Score    int32
-}
-
-type Game struct {
-	Red    Player
-	Blue   Player
-	Ball   Ball
-	Client *client.Client
-}
-
 func init() {
 	server.StartServer()
-}
-
-func NewGame() *Game {
-
-	return &Game{
-		Red: Player{
-			Position: rl.Vector2{
-				X: 0,
-				Y: 200,
-			},
-			Size: rl.Vector2{
-				X: 10,
-				Y: 100,
-			},
-		},
-
-		Blue: Player{
-			Position: rl.Vector2{
-				X: float32(SCREEN_WIDTH) - 10,
-				Y: 200,
-			},
-			Size: rl.Vector2{
-				X: 10,
-				Y: 100,
-			},
-		},
-		Ball: Ball{
-			Position: rl.Vector2{
-				X: float32(SCREEN_WIDTH) / 2,
-				Y: float32(SCREEN_HEIGHT) / 2,
-			},
-			Speed: rl.Vector2{
-				X: 3.0,
-				Y: 0.0,
-			},
-			IsActive: false,
-		},
-		Client: client.NewClient(),
-	}
 }
 
 func main() {
 	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "pong")
 	defer rl.CloseWindow()
 
-	g := NewGame()
+	g := server.NewGame()
+	g.Client = client.NewClient()
+
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {
-		g.handleMovement()
+		handleMovement(g)
 		if g.Ball.IsActive {
 			g.Ball.Position.X = g.Ball.Position.X + float32(g.Ball.Speed.X)
 			g.Ball.Position.Y = g.Ball.Position.Y + float32(g.Ball.Speed.Y)
@@ -95,12 +37,12 @@ func main() {
 		if g.Ball.Position.X <= 0 {
 			g.Blue.Score = g.Blue.Score + 1
 			// reset
-			g.reset()
+			g.Reset()
 		}
 		if g.Ball.Position.X >= float32(SCREEN_WIDTH) {
 			g.Red.Score = g.Red.Score + 1
 			// reset
-			g.reset()
+			g.Reset()
 		}
 
 		if g.Ball.Position.Y <= 0 {
@@ -131,14 +73,22 @@ func main() {
 	}
 }
 
-func (g *Game) handleMovement() {
+func handleMovement(g *server.Game) {
 	if rl.IsKeyDown(rl.KeyJ) {
+		_, err := g.Client.Conn.Write([]byte("RKEY_J\n"))
+		if err != nil {
+			log.Println("pressing j is not sending data")
+		}
+		var res [256]byte
+
+		_, _, err = g.Client.Conn.ReadFromUDP(res[0:])
+		if err != nil {
+			log.Println("unable to get response for the server")
+		}
+		log.Printf("response from the server: %v", string(res[0:]))
+
 		if g.Red.Position.Y < float32(SCREEN_HEIGHT)-g.Red.Size.Y/2 {
 			g.Red.Position.Y = g.Red.Position.Y + 2
-			_, err := g.Client.Conn.Write([]byte("hello from the key j\n"))
-			if err != nil {
-				log.Println("pressing j is not sending data")
-			}
 		}
 	}
 	if rl.IsKeyDown(rl.KeyK) {
@@ -184,46 +134,46 @@ func (g *Game) handleMovement() {
 	}
 }
 
-func (g *Game) reset() {
-	if g.Red.Score >= SCORE_LIMIT {
-		rl.BeginDrawing()
-		rl.ClearBackground(rl.Black)
-		rl.DrawText("RED WINS!!", int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 32, rl.Red)
-		rl.EndDrawing()
-		rl.WaitTime(2)
-		os.Exit(0)
-	}
-
-	if g.Blue.Score >= SCORE_LIMIT {
-		rl.BeginDrawing()
-		rl.ClearBackground(rl.Black)
-		rl.DrawText("BLUE WINS!!", int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 32, rl.Blue)
-		rl.EndDrawing()
-		rl.WaitTime(2)
-		os.Exit(0)
-	}
-
-	rl.BeginDrawing()
-	rl.ClearBackground(rl.Black)
-	rl.DrawText(fmt.Sprintf("RED: %v |<=>| BLUE: %v", g.Red.Score, g.Blue.Score), int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 24, rl.White)
-	rl.EndDrawing()
-	rl.WaitTime(2.5)
-
-	// INFO: reset blue
-	g.Blue.Position.X = float32(SCREEN_WIDTH) - 10
-	g.Blue.Position.Y = 200
-	g.Blue.Size.X = 10
-	g.Blue.Size.Y = 100
-
-	// INFO: reset red
-	g.Red.Position.X = 0
-	g.Red.Position.Y = 200
-	g.Red.Size.X = 10
-	g.Red.Size.Y = 100
-
-	// INFO: reset ball
-	g.Ball.Position = rl.Vector2{X: g.Red.Position.X + 2*g.Red.Size.X + g.Ball.Radius, Y: g.Red.Position.Y}
-	g.Ball.Speed.Y = 0.0
-	g.Ball.Speed.X = 3.0
-	g.Ball.IsActive = false
-}
+// func Reset() {
+// 	if g.Red.Score >= SCORE_LIMIT {
+// 		rl.BeginDrawing()
+// 		rl.ClearBackground(rl.Black)
+// 		rl.DrawText("RED WINS!!", int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 32, rl.Red)
+// 		rl.EndDrawing()
+// 		rl.WaitTime(2)
+// 		os.Exit(0)
+// 	}
+//
+// 	if g.Blue.Score >= SCORE_LIMIT {
+// 		rl.BeginDrawing()
+// 		rl.ClearBackground(rl.Black)
+// 		rl.DrawText("BLUE WINS!!", int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 32, rl.Blue)
+// 		rl.EndDrawing()
+// 		rl.WaitTime(2)
+// 		os.Exit(0)
+// 	}
+//
+// 	rl.BeginDrawing()
+// 	rl.ClearBackground(rl.Black)
+// 	rl.DrawText(fmt.Sprintf("RED: %v |<=>| BLUE: %v", g.Red.Score, g.Blue.Score), int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 24, rl.White)
+// 	rl.EndDrawing()
+// 	rl.WaitTime(2.5)
+//
+// 	// INFO: reset blue
+// 	g.Blue.Position.X = float32(SCREEN_WIDTH) - 10
+// 	g.Blue.Position.Y = 200
+// 	g.Blue.Size.X = 10
+// 	g.Blue.Size.Y = 100
+//
+// 	// INFO: reset red
+// 	g.Red.Position.X = 0
+// 	g.Red.Position.Y = 200
+// 	g.Red.Size.X = 10
+// 	g.Red.Size.Y = 100
+//
+// 	// INFO: reset ball
+// 	g.Ball.Position = rl.Vector2{X: g.Red.Position.X + 2*g.Red.Size.X + g.Ball.Radius, Y: g.Red.Position.Y}
+// 	g.Ball.Speed.Y = 0.0
+// 	g.Ball.Speed.X = 3.0
+// 	g.Ball.IsActive = false
+// }
