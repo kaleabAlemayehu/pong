@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"playground/raylib-go/client"
@@ -13,11 +14,15 @@ const SCREEN_WIDTH int32 = 800
 const SCREEN_HEIGHT int32 = 450
 const SCORE_LIMIT int32 = 3
 
-func init() {
-	server.StartServer()
-}
-
 func main() {
+	host := flag.Bool("host", false, "to host server of the game")
+	flag.Parse()
+
+	if *host == true {
+		server.StartServer()
+
+	}
+
 	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "pong")
 	defer rl.CloseWindow()
 

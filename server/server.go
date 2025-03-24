@@ -95,6 +95,7 @@ func StartServer() {
 				log.Printf("unable to read: Error: %v", err.Error())
 				return
 			}
+			// TODO: only read sent value from the valid clients
 
 			log.Printf("|> %v", string(buf[0:]))
 			if string(buf[0:]) == "RKEY_J" {
