@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -36,7 +37,7 @@ func main() {
 			g.Ball.Position.X = g.Ball.Position.X + float32(g.Ball.Speed.X)
 			g.Ball.Position.Y = g.Ball.Position.Y + float32(g.Ball.Speed.Y)
 		} else {
-			g.Ball.Position = rl.Vector2{X: g.Red.Position.X + 2*g.Red.Size.X + g.Ball.Radius, Y: g.Red.Position.Y}
+			g.Ball.Position = server.Coordinate{X: g.Red.Position.X + 2*g.Red.Size.X + g.Ball.Radius, Y: g.Red.Position.Y}
 		}
 		// ball.Position.Y = ball.Position.Y + float32(ball.Speed.Y)
 		if g.Ball.Position.X <= 0 {
@@ -57,12 +58,12 @@ func main() {
 			g.Ball.Speed.Y = -3.0
 		}
 
-		if rl.CheckCollisionCircleRec(g.Ball.Position, g.Ball.Radius, rl.Rectangle{X: g.Red.Position.X, Y: g.Red.Position.Y - g.Red.Size.Y/2, Width: g.Red.Size.X, Height: g.Red.Size.Y}) {
+		if rl.CheckCollisionCircleRec(rl.Vector2(g.Ball.Position), g.Ball.Radius, rl.Rectangle{X: g.Red.Position.X, Y: g.Red.Position.Y - g.Red.Size.Y/2, Width: g.Red.Size.X, Height: g.Red.Size.Y}) {
 			g.Ball.Speed.X = 3.0
 			g.Ball.Speed.Y = (g.Ball.Position.Y - g.Red.Position.Y) / (g.Red.Size.Y / 2) * 5
 
 		}
-		if rl.CheckCollisionCircleRec(g.Ball.Position, 10.0, rl.Rectangle{X: g.Blue.Position.X, Y: g.Blue.Position.Y - g.Blue.Size.Y/2, Width: g.Blue.Size.X, Height: g.Blue.Size.Y}) {
+		if rl.CheckCollisionCircleRec(rl.Vector2(g.Ball.Position), 10.0, rl.Rectangle{X: g.Blue.Position.X, Y: g.Blue.Position.Y - g.Blue.Size.Y/2, Width: g.Blue.Size.X, Height: g.Blue.Size.Y}) {
 			g.Ball.Speed.X = -3.0
 			g.Ball.Speed.Y = (g.Ball.Position.Y - g.Blue.Position.Y) / (g.Blue.Size.Y / 2) * 5
 		}
@@ -72,7 +73,7 @@ func main() {
 		rl.ClearBackground(rl.Black)
 		rl.DrawRectangleRec(rl.Rectangle{X: g.Red.Position.X, Y: g.Red.Position.Y - (g.Red.Size.Y / 2), Width: g.Red.Size.X, Height: g.Red.Size.Y}, rl.Red)
 		rl.DrawRectangleRec(rl.Rectangle{X: g.Blue.Position.X, Y: g.Blue.Position.Y - (g.Blue.Size.Y / 2), Width: g.Blue.Size.X, Height: g.Blue.Size.Y}, rl.Blue)
-		rl.DrawCircleV(g.Ball.Position, 10.0, rl.White)
+		rl.DrawCircleV(rl.Vector2(g.Ball.Position), 10.0, rl.White)
 		rl.DrawText(fmt.Sprintf("RED: %v |<=>| BLUE: %v", g.Red.Score, g.Blue.Score), int32(rl.GetScreenWidth()/2)-115, 0, 20, rl.White)
 		rl.EndDrawing()
 	}
@@ -86,15 +87,17 @@ func handleMovement(g *server.Game) {
 		}
 		var res [256]byte
 
-		_, _, err = g.Client.Conn.ReadFromUDP(res[0:])
+		g.Client.Conn.ReadFromUDP(res[0:])
 		if err != nil {
 			log.Println("unable to get response for the server")
 		}
-		log.Printf("response from the server: %v", string(res[0:]))
-
-		if g.Red.Position.Y < float32(SCREEN_HEIGHT)-g.Red.Size.Y/2 {
-			g.Red.Position.Y = g.Red.Position.Y + 2
+		log.Printf("response from the server RKEY_J: %v", string(res[0:]))
+		var resVal server.Coordinate = g.Red.Position
+		err = json.Unmarshal(res[:], &resVal)
+		if err != nil {
+			log.Println(err.Error())
 		}
+		g.Red.Position = resVal
 	}
 	if rl.IsKeyDown(rl.KeyK) {
 		if g.Red.Position.Y > g.Red.Size.Y/2 {

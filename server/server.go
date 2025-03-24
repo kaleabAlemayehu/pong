@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -14,55 +15,60 @@ const SCREEN_WIDTH int32 = 800
 const SCREEN_HEIGHT int32 = 450
 const SCORE_LIMIT int32 = 3
 
+type Coordinate struct {
+	X float32 `json:"x"`
+	Y float32 `json:"y"`
+}
+
 type Ball struct {
-	Position rl.Vector2
-	Speed    rl.Vector2
-	Radius   float32
-	IsActive bool
+	Position Coordinate `json:"position"`
+	Speed    Coordinate `json:"speed"`
+	Radius   float32    `json:"radius"`
+	IsActive bool       `json:"is_active"`
 }
 
 type Player struct {
-	Position rl.Vector2
-	Size     rl.Vector2
-	Score    int32
+	Position Coordinate `json:"position"`
+	Size     Coordinate `json:"size"`
+	Score    int32      `json:"score"`
 }
 
 type Game struct {
-	Red    Player
-	Blue   Player
-	Ball   Ball
-	Conn   map[string]net.Addr
-	Client *client.Client
+	Red    Player              `json:"red"`
+	Blue   Player              `json:"blue"`
+	Ball   Ball                `json:"ball"`
+	Conn   map[string]net.Addr `json:"conn"`
+	Client *client.Client      `json:"client"`
 }
 
 var GAME *Game = &Game{
 	Red: Player{
-		Position: rl.Vector2{
+		Position: Coordinate{
 			X: 0,
 			Y: 200,
 		},
-		Size: rl.Vector2{
+		Size: Coordinate{
 			X: 10,
 			Y: 100,
 		},
 	},
 
 	Blue: Player{
-		Position: rl.Vector2{
+		Position: Coordinate{
 			X: float32(SCREEN_WIDTH) - 10,
 			Y: 200,
 		},
-		Size: rl.Vector2{
+		Size: Coordinate{
 			X: 10,
 			Y: 100,
 		},
 	},
 	Ball: Ball{
-		Position: rl.Vector2{
+		Position: Coordinate{
 			X: float32(SCREEN_WIDTH) / 2,
 			Y: float32(SCREEN_HEIGHT) / 2,
 		},
-		Speed: rl.Vector2{
+		Speed: Coordinate{
 			X: 3.0,
 			Y: 0.0,
 		},
@@ -92,28 +98,54 @@ func StartServer() {
 			}
 
 			if err != nil {
-				log.Printf("unable to read: Error: %v", err.Error())
-				return
+				log.Printf("unable to read: Error: %v\n", err.Error())
 			}
+
 			// TODO: only read sent value from the valid clients
 
-			log.Printf("|> %v", string(buf[0:]))
-			if string(buf[0:]) == "RKEY_J" {
-				if GAME.Red.Position.Y < float32(SCREEN_HEIGHT)-GAME.Red.Size.Y/2 {
-					GAME.Red.Position.Y = GAME.Red.Position.Y + 2
+			var msg []byte
+			switch cmd := string(buf[0:6]); cmd {
+			case "RKEY_J":
+				{
+
+					if GAME.Red.Position.Y < float32(SCREEN_HEIGHT)-GAME.Red.Size.Y/2 {
+						GAME.Red.Position.Y = GAME.Red.Position.Y + 2
+					}
+					log.Printf("position: %v\n", GAME.Red.Position.Y)
+
+					log.Printf("message: |> %v \n", string(msg))
+
+					msg, err = json.Marshal(GAME.Red.Position)
+					if err != nil {
+						log.Println("unable to marshal the message")
+					}
 				}
+			default:
 
 			}
+			// if string(buf[0:6]) == "RKEY_J" {
+			// 	// sendResponse(conn, msg)
+			// }
+
 			for _, c := range GAME.Conn {
 				if c != nil {
 					log.Printf("number ofcurrent client: %v\n", len(GAME.Conn))
-					conn.WriteTo([]byte("dont blame me i am sending something"), c)
+					conn.WriteTo(msg, c)
 				}
 			}
 
 		}
 
 	}()
+}
+
+func sendResponse(conn net.PacketConn, msg []byte) {
+	for _, c := range GAME.Conn {
+		if c != nil {
+			log.Printf("number ofcurrent client: %v\n", len(GAME.Conn))
+			conn.WriteTo(msg, c)
+		}
+	}
 }
 
 func (g *Game) Reset() {
@@ -154,7 +186,7 @@ func (g *Game) Reset() {
 	g.Red.Size.Y = 100
 
 	// INFO: reset ball
-	g.Ball.Position = rl.Vector2{X: g.Red.Position.X + 2*g.Red.Size.X + g.Ball.Radius, Y: g.Red.Position.Y}
+	g.Ball.Position = Coordinate{X: g.Red.Position.X + 2*g.Red.Size.X + g.Ball.Radius, Y: g.Red.Position.Y}
 	g.Ball.Speed.Y = 0.0
 	g.Ball.Speed.X = 3.0
 	g.Ball.IsActive = false
