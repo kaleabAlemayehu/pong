@@ -29,7 +29,6 @@ func ListeningClient(input chan string, msg chan []byte) {
 			if err != nil {
 				log.Printf("unable to start the server => Error:%v ", err.Error())
 			}
-			log.Printf("but this doesn't print out")
 			select {
 			case msg <- res[:n]: // Non-blocking send
 			default:

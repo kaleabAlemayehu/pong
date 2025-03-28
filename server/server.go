@@ -98,10 +98,10 @@ func StartServer() {
 			}
 
 			// TODO: only read sent value from the valid clients
-			// if _, ok := GAME.Conn[addr.String()]; !ok {
-			// 	// INFO: empty out the byte array if it is not form valid client
-			// 	buf = [10]byte{}
-			// }
+			if _, ok := GAME.Conn[addr.String()]; !ok {
+				// INFO: empty out the byte array if it is not form valid client
+				buf = [10]byte{}
+			}
 
 			if GAME.Ball.IsActive {
 				GAME.Ball.Position.X = GAME.Ball.Position.X + float32(GAME.Ball.Speed.X)
@@ -128,7 +128,6 @@ func StartServer() {
 				GAME.Ball.Speed.Y = -3.0
 			}
 
-			var msg []byte
 			switch cmd := string(buf[0:n]); cmd {
 			case "R_J":
 				{
@@ -137,11 +136,6 @@ func StartServer() {
 						GAME.Red.Position.Y = GAME.Red.Position.Y + 2
 					}
 
-					msg, err = json.Marshal(GAME)
-					if err != nil {
-						log.Println("unable to marshal the message")
-					}
-					log.Printf("message: |> %v \n", string(msg))
 				}
 			case "R_K":
 				{
@@ -167,8 +161,8 @@ func StartServer() {
 			case "B_H":
 				{
 
-					if GAME.Blue.Position.X < float32(SCREEN_WIDTH)-GAME.Blue.Size.X {
-						GAME.Blue.Position.X = GAME.Blue.Position.X + 2
+					if GAME.Blue.Position.X > 0 {
+						GAME.Blue.Position.X = GAME.Blue.Position.X - 2
 					}
 				}
 			case "B_L":
@@ -189,6 +183,20 @@ func StartServer() {
 						GAME.Blue.Position.Y = GAME.Blue.Position.Y - 2
 					}
 				}
+			// collitions
+			case "R_B":
+				{
+
+					GAME.Ball.Speed.X = 3.0
+					GAME.Ball.Speed.Y = (GAME.Ball.Position.Y - GAME.Red.Position.Y) / (GAME.Red.Size.Y / 2) * 5
+
+				}
+			case "B_B":
+				{
+					GAME.Ball.Speed.X = -3.0
+					GAME.Ball.Speed.Y = (GAME.Ball.Position.Y - GAME.Blue.Position.Y) / (GAME.Blue.Size.Y / 2) * 5
+
+				}
 			case "START":
 				{
 
@@ -204,6 +212,11 @@ func StartServer() {
 			// TODO: marshal the game struct and send it
 			// log.Printf("message: %v \n", string(msg))
 
+			msg, err := json.Marshal(GAME)
+			if err != nil {
+				log.Println("unable to marshal the message")
+			}
+			log.Printf("message: |> %v \n", string(msg))
 			for _, c := range GAME.Conn {
 				if c != nil {
 					log.Printf("number ofcurrent client: %v\n", len(GAME.Conn))

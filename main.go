@@ -95,23 +95,24 @@ func main() {
 				log.Printf("there is something wrong with the recieved data\n")
 
 			}
+			log.Printf("value: %v", string(msg))
 			err := json.Unmarshal(msg, g)
 			if err != nil {
 				log.Printf("error happend when recieved data from the server unmarshaled\n")
+				// log.Printf("the error: %v", err.Error())
 			}
 
 		default:
 			handleMovement(input)
 			if rl.CheckCollisionCircleRec(rl.Vector2(g.Ball.Position), g.Ball.Radius, rl.Rectangle{X: g.Red.Position.X, Y: g.Red.Position.Y - g.Red.Size.Y/2, Width: g.Red.Size.X, Height: g.Red.Size.Y}) {
-				g.Ball.Speed.X = 3.0
-				g.Ball.Speed.Y = (g.Ball.Position.Y - g.Red.Position.Y) / (g.Red.Size.Y / 2) * 5
 				// send red collition with ball
+				input <- "R_B"
 
 			}
 			if rl.CheckCollisionCircleRec(rl.Vector2(g.Ball.Position), 10.0, rl.Rectangle{X: g.Blue.Position.X, Y: g.Blue.Position.Y - g.Blue.Size.Y/2, Width: g.Blue.Size.X, Height: g.Blue.Size.Y}) {
-				g.Ball.Speed.X = -3.0
-				g.Ball.Speed.Y = (g.Ball.Position.Y - g.Blue.Position.Y) / (g.Blue.Size.Y / 2) * 5
+
 				// send blue collition with ball
+				input <- "B_B"
 			}
 
 			// INFO: drawing start
@@ -152,47 +153,55 @@ func handleMovement(input chan string) {
 		// g.Red.Position = resval
 	}
 	if rl.IsKeyDown(rl.KeyK) {
-		if g.Red.Position.Y > g.Red.Size.Y/2 {
-			g.Red.Position.Y = g.Red.Position.Y - 2
-		}
+		// if g.Red.Position.Y > g.Red.Size.Y/2 {
+		// 	g.Red.Position.Y = g.Red.Position.Y - 2
+		// }
+		input <- "R_K"
 	}
 	if rl.IsKeyDown(rl.KeyH) {
-		if g.Red.Position.X > 0 {
-			g.Red.Position.X = g.Red.Position.X - 2
-		}
+		// if g.Red.Position.X > 0 {
+		// 	g.Red.Position.X = g.Red.Position.X - 2
+		// }
+		input <- "R_H"
 	}
 	if rl.IsKeyDown(rl.KeyL) {
-		if g.Red.Position.X < float32(SCREEN_WIDTH)-g.Red.Size.X {
-			g.Red.Position.X = g.Red.Position.X + 2
-		}
+		// if g.Red.Position.X < float32(SCREEN_WIDTH)-g.Red.Size.X {
+		// 	g.Red.Position.X = g.Red.Position.X + 2
+		// }
+
+		input <- "R_L"
 	}
 
 	if rl.IsKeyDown(rl.KeyA) {
 		// B_H
-		if g.Blue.Position.X > 0 {
-			g.Blue.Position.X = g.Blue.Position.X - 2
-		}
+		// if g.Blue.Position.X > 0 {
+		// 	g.Blue.Position.X = g.Blue.Position.X - 2
+		// }
+		input <- "B_H"
 	}
 
 	if rl.IsKeyDown(rl.KeyF) {
-		// B_L
-		if g.Blue.Position.X < float32(SCREEN_WIDTH)-g.Blue.Size.X {
-			g.Blue.Position.X = g.Blue.Position.X + 2
-		}
+		input <- "B_L"
+		// if g.Blue.Position.X < float32(SCREEN_WIDTH)-g.Blue.Size.X {
+		// 	g.Blue.Position.X = g.Blue.Position.X + 2
+		// }
 	}
 
 	if rl.IsKeyDown(rl.KeyS) {
-		if g.Blue.Position.Y < float32(SCREEN_HEIGHT)-g.Blue.Size.Y/2 {
-			g.Blue.Position.Y = g.Blue.Position.Y + 2
-		}
+		input <- "B_J"
+		// if g.Blue.Position.Y < float32(SCREEN_HEIGHT)-g.Blue.Size.Y/2 {
+		// 	g.Blue.Position.Y = g.Blue.Position.Y + 2
+		// }
 	}
 	if rl.IsKeyDown(rl.KeyD) {
-		if g.Blue.Position.Y > g.Blue.Size.Y/2 {
-			g.Blue.Position.Y = g.Blue.Position.Y - 2
-		}
+		// if g.Blue.Position.Y > g.Blue.Size.Y/2 {
+		// 	g.Blue.Position.Y = g.Blue.Position.Y - 2
+		// }
+		input <- "B_K"
 	}
 	if rl.IsKeyDown(rl.KeySpace) {
-		g.Ball.IsActive = true
+		// g.Ball.IsActive = true
+		input <- "START"
 	}
 }
 
