@@ -2,13 +2,9 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net"
-	"os"
 	"playground/raylib-go/client"
-
-	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 const SCREEN_WIDTH int32 = 800
@@ -77,21 +73,21 @@ var GAME *Game = &Game{
 	Conn: make(map[string]net.Addr),
 }
 
-func NewGame() *Game {
-	return GAME
-}
-
 func StartServer() {
 	conn, err := net.ListenPacket("udp", ":8000")
 	if err != nil {
 		log.Fatalf("unable to start the server => Error:%v ", err.Error())
 	}
+	// defer conn.Close()
 	log.Printf("listening connection on port :8000")
 	go func() {
 		for {
 			var buf [10]byte
 
-			_, addr, err := conn.ReadFrom(buf[0:])
+			n, addr, err := conn.ReadFrom(buf[:])
+			if err != nil {
+				log.Printf("error when setup: %v", err.Error())
+			}
 
 			if len(GAME.Conn) < 2 {
 				GAME.Conn[addr.String()] = addr
@@ -102,38 +98,119 @@ func StartServer() {
 			}
 
 			// TODO: only read sent value from the valid clients
+			// if _, ok := GAME.Conn[addr.String()]; !ok {
+			// 	// INFO: empty out the byte array if it is not form valid client
+			// 	buf = [10]byte{}
+			// }
+
+			if GAME.Ball.IsActive {
+				GAME.Ball.Position.X = GAME.Ball.Position.X + float32(GAME.Ball.Speed.X)
+				GAME.Ball.Position.Y = GAME.Ball.Position.Y + float32(GAME.Ball.Speed.Y)
+			} else {
+				GAME.Ball.Position = Coordinate{X: GAME.Red.Position.X + 2*GAME.Red.Size.X + GAME.Ball.Radius, Y: GAME.Red.Position.Y}
+			}
+			// ball.Position.Y = ball.Position.Y + float32(ball.Speed.Y)
+			if GAME.Ball.Position.X <= 0 {
+				GAME.Blue.Score = GAME.Blue.Score + 1
+				// reset
+				GAME.Reset()
+			}
+			if GAME.Ball.Position.X >= float32(SCREEN_WIDTH) {
+				GAME.Red.Score = GAME.Red.Score + 1
+				// reset
+				GAME.Reset()
+			}
+
+			if GAME.Ball.Position.Y <= 0 {
+				GAME.Ball.Speed.Y = 3.0
+			}
+			if GAME.Ball.Position.Y >= float32(SCREEN_HEIGHT) {
+				GAME.Ball.Speed.Y = -3.0
+			}
 
 			var msg []byte
-			switch cmd := string(buf[0:6]); cmd {
-			case "RKEY_J":
+			switch cmd := string(buf[0:n]); cmd {
+			case "R_J":
 				{
 
 					if GAME.Red.Position.Y < float32(SCREEN_HEIGHT)-GAME.Red.Size.Y/2 {
 						GAME.Red.Position.Y = GAME.Red.Position.Y + 2
 					}
-					log.Printf("position: %v\n", GAME.Red.Position.Y)
 
-					log.Printf("message: |> %v \n", string(msg))
-
-					msg, err = json.Marshal(GAME.Red.Position)
+					msg, err = json.Marshal(GAME)
 					if err != nil {
 						log.Println("unable to marshal the message")
 					}
+					log.Printf("message: |> %v \n", string(msg))
 				}
+			case "R_K":
+				{
+					if GAME.Red.Position.Y > GAME.Red.Size.Y/2 {
+						GAME.Red.Position.Y = GAME.Red.Position.Y - 2
+					}
+
+				}
+			case "R_H":
+				{
+					if GAME.Red.Position.X > 0 {
+						GAME.Red.Position.X = GAME.Red.Position.X - 2
+					}
+
+				}
+			case "R_L":
+				{
+
+					if GAME.Red.Position.X < float32(SCREEN_WIDTH)-GAME.Red.Size.X {
+						GAME.Red.Position.X = GAME.Red.Position.X + 2
+					}
+				}
+			case "B_H":
+				{
+
+					if GAME.Blue.Position.X < float32(SCREEN_WIDTH)-GAME.Blue.Size.X {
+						GAME.Blue.Position.X = GAME.Blue.Position.X + 2
+					}
+				}
+			case "B_L":
+				{
+					if GAME.Blue.Position.X < float32(SCREEN_WIDTH)-GAME.Blue.Size.X {
+						GAME.Blue.Position.X = GAME.Blue.Position.X + 2
+					}
+				}
+			case "B_J":
+				{
+					if GAME.Blue.Position.Y < float32(SCREEN_HEIGHT)-GAME.Blue.Size.Y/2 {
+						GAME.Blue.Position.Y = GAME.Blue.Position.Y + 2
+					}
+				}
+			case "B_K":
+				{
+					if GAME.Blue.Position.Y > GAME.Blue.Size.Y/2 {
+						GAME.Blue.Position.Y = GAME.Blue.Position.Y - 2
+					}
+				}
+			case "START":
+				{
+
+					GAME.Ball.IsActive = true
+				}
+
 			default:
 
 			}
 			// if string(buf[0:6]) == "RKEY_J" {
-			// 	// sendResponse(conn, msg)
+			// sendResponse(conn, msg)
 			// }
+			// TODO: marshal the game struct and send it
+			// log.Printf("message: %v \n", string(msg))
 
 			for _, c := range GAME.Conn {
 				if c != nil {
 					log.Printf("number ofcurrent client: %v\n", len(GAME.Conn))
+					log.Printf("client: %v", c)
 					conn.WriteTo(msg, c)
 				}
 			}
-
 		}
 
 	}()
@@ -150,28 +227,33 @@ func sendResponse(conn net.PacketConn, msg []byte) {
 
 func (g *Game) Reset() {
 	if g.Red.Score >= SCORE_LIMIT {
-		rl.BeginDrawing()
-		rl.ClearBackground(rl.Black)
-		rl.DrawText("RED WINS!!", int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 32, rl.Red)
-		rl.EndDrawing()
-		rl.WaitTime(2)
-		os.Exit(0)
+		// rl.BeginDrawing()
+		// rl.ClearBackground(rl.Black)
+		// rl.DrawText("RED WINS!!", int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 32, rl.Red)
+		// rl.EndDrawing()
+		// rl.WaitTime(2)
+		// os.Exit(0)
+		// TODO: send red wins message
 	}
 
 	if g.Blue.Score >= SCORE_LIMIT {
-		rl.BeginDrawing()
-		rl.ClearBackground(rl.Black)
-		rl.DrawText("BLUE WINS!!", int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 32, rl.Blue)
-		rl.EndDrawing()
-		rl.WaitTime(2)
-		os.Exit(0)
+		// rl.BeginDrawing()
+		// rl.ClearBackground(rl.Black)
+		// rl.DrawText("BLUE WINS!!", int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 32, rl.Blue)
+		// rl.EndDrawing()
+		// rl.WaitTime(2)
+		// os.Exit(0)
+		// TODO: send blue wins message
+
 	}
 
-	rl.BeginDrawing()
-	rl.ClearBackground(rl.Black)
-	rl.DrawText(fmt.Sprintf("RED: %v |<=>| BLUE: %v", g.Red.Score, g.Blue.Score), int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 24, rl.White)
-	rl.EndDrawing()
-	rl.WaitTime(2.5)
+	// TODO: put this on the client
+
+	// rl.BeginDrawing()
+	// rl.ClearBackground(rl.Black)
+	// rl.DrawText(fmt.Sprintf("RED: %v |<=>| BLUE: %v", g.Red.Score, g.Blue.Score), int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 24, rl.White)
+	// rl.EndDrawing()
+	// rl.WaitTime(2.5)
 
 	// INFO: reset blue
 	g.Blue.Position.X = float32(SCREEN_WIDTH) - 10
