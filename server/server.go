@@ -45,8 +45,9 @@ var g *models.ServerGame = &models.ServerGame{
 		},
 		IsActive: false,
 	},
-	Conn:   make(map[string]net.Addr),
-	Winner: make(map[string]bool),
+	Conn:         make(map[string]net.Addr),
+	Winner:       make(map[string]bool),
+	ScoreUpdated: true,
 }
 
 func StartServer() {
@@ -182,6 +183,7 @@ func StartServer() {
 				}
 			case <-ticker.C:
 				{
+					g.ScoreUpdated = false
 					if g.Ball.IsActive {
 						g.Ball.Position.X = g.Ball.Position.X + float32(g.Ball.Speed.X)
 						g.Ball.Position.Y = g.Ball.Position.Y + float32(g.Ball.Speed.Y)
@@ -233,33 +235,11 @@ func sendResponse(conn net.PacketConn, addr net.Addr, msg []byte) {
 
 func reset() {
 	if g.Red.Score >= SCORE_LIMIT {
-		// rl.BeginDrawing()
-		// rl.ClearBackground(rl.Black)
-		// rl.DrawText("RED WINS!!", int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 32, rl.Red)
-		// rl.EndDrawing()
-		// rl.WaitTime(2)
-		// os.Exit(0)
-		// TODO: send red wins message
 		g.Winner["red"] = true
 	}
 	if g.Blue.Score >= SCORE_LIMIT {
-		// rl.BeginDrawing()
-		// rl.ClearBackground(rl.Black)
-		// rl.DrawText("BLUE WINS!!", int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 32, rl.Blue)
-		// rl.EndDrawing()
-		// rl.WaitTime(2)
-		// os.Exit(0)
-		// TODO: send blue wins message
 		g.Winner["blue"] = true
 	}
-
-	// TODO: put this on the client
-
-	// rl.BeginDrawing()
-	// rl.ClearBackground(rl.Black)
-	// rl.DrawText(fmt.Sprintf("RED: %v |<=>| BLUE: %v", g.Red.Score, g.Blue.Score), int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 24, rl.White)
-	// rl.EndDrawing()
-	// rl.WaitTime(2.5)
 
 	// INFO: reset blue
 	g.Blue.Position.X = float32(SCREEN_WIDTH) - 10
@@ -278,4 +258,7 @@ func reset() {
 	g.Ball.Speed.Y = 0.0
 	g.Ball.Speed.X = 3.0
 	g.Ball.IsActive = false
+
+	// INFO: update score
+	g.ScoreUpdated = true
 }

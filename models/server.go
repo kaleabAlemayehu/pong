@@ -28,10 +28,11 @@ type ServerPlayer struct {
 }
 
 type ServerGame struct {
-	Red    ServerPlayer        `json:"red"`
-	Blue   ServerPlayer        `json:"blue"`
-	Ball   ServerBall          `json:"ball"`
-	Conn   map[string]net.Addr `json:"conn"`
-	Client Client              `json:"client"`
-	Winner map[string]bool     `json:"winner_player"`
+	Red          ServerPlayer        `json:"red"`
+	Blue         ServerPlayer        `json:"blue"`
+	Ball         ServerBall          `json:"ball"`
+	Conn         map[string]net.Addr `json:"conn"`
+	Client       Client              `json:"client"`
+	Winner       map[string]bool     `json:"winner_player"`
+	ScoreUpdated bool                `json:"score_updated"`
 }
