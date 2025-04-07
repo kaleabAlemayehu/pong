@@ -33,4 +33,5 @@ type ServerGame struct {
 	Ball   ServerBall          `json:"ball"`
 	Conn   map[string]net.Addr `json:"conn"`
 	Client Client              `json:"client"`
+	Winner map[string]bool     `json:"winner_player"`
 }

@@ -23,8 +23,9 @@ type Client struct {
 }
 
 type Game struct {
-	Red    Player `json:"red"`
-	Blue   Player `json:"blue"`
-	Ball   Ball   `json:"ball"`
-	Client Client `json:"client"`
+	Red    Player          `json:"red"`
+	Blue   Player          `json:"blue"`
+	Ball   Ball            `json:"ball"`
+	Client Client          `json:"client"`
+	Winner map[string]bool `json:"winner_player"`
 }

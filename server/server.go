@@ -45,7 +45,8 @@ var g *models.ServerGame = &models.ServerGame{
 		},
 		IsActive: false,
 	},
-	Conn: make(map[string]net.Addr),
+	Conn:   make(map[string]net.Addr),
+	Winner: make(map[string]bool),
 }
 
 func StartServer() {
@@ -211,7 +212,7 @@ func StartServer() {
 						log.Println("unable to marshal the message")
 						log.Printf("error: %v \n", err.Error())
 					}
-					log.Printf("new state |> %v \n", string(msg))
+					// log.Printf("new state |> %v \n", string(msg))
 
 					for _, addr := range g.Conn {
 						sendResponse(conn, addr, msg)
@@ -239,8 +240,8 @@ func reset() {
 		// rl.WaitTime(2)
 		// os.Exit(0)
 		// TODO: send red wins message
+		g.Winner["red"] = true
 	}
-
 	if g.Blue.Score >= SCORE_LIMIT {
 		// rl.BeginDrawing()
 		// rl.ClearBackground(rl.Black)
@@ -249,7 +250,7 @@ func reset() {
 		// rl.WaitTime(2)
 		// os.Exit(0)
 		// TODO: send blue wins message
-
+		g.Winner["blue"] = true
 	}
 
 	// TODO: put this on the client

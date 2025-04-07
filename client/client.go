@@ -27,7 +27,7 @@ func ListeningClient(input chan string, msg chan *model.Game) {
 			if err != nil {
 				log.Printf("unable to start the server => Error:%v ", err.Error())
 			}
-			log.Printf("Game value recevied: %v\n", string(res[:n]))
+			// log.Printf("Game value recevied: %v\n", string(res[:n]))
 
 			err = json.Unmarshal(res[:n], &g)
 			if err != nil {
