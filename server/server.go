@@ -12,66 +12,34 @@ const SCREEN_WIDTH int32 = 800
 const SCREEN_HEIGHT int32 = 450
 const SCORE_LIMIT int32 = 3
 
-// var mu sync.Mutex
-type InputMessage struct {
-	Addr string
-	Cmd  string // e.g., "R_J", "R_K"
-}
-
-type Coordinate struct {
-	X float32 `json:"x"`
-	Y float32 `json:"y"`
-}
-
-type Ball struct {
-	Position Coordinate `json:"position"`
-	Speed    Coordinate `json:"speed"`
-	Radius   float32    `json:"radius"`
-	IsActive bool       `json:"is_active"`
-}
-
-type Player struct {
-	Position Coordinate `json:"position"`
-	Size     Coordinate `json:"size"`
-	Score    int32      `json:"score"`
-}
-
-type Game struct {
-	Red    Player              `json:"red"`
-	Blue   Player              `json:"blue"`
-	Ball   Ball                `json:"ball"`
-	Conn   map[string]net.Addr `json:"conn"`
-	Client *models.Client      `json:"client"`
-}
-
-var g *Game = &Game{
-	Red: Player{
-		Position: Coordinate{
+var g *models.ServerGame = &models.ServerGame{
+	Red: models.ServerPlayer{
+		Position: models.Coordinate{
 			X: 0,
 			Y: 200,
 		},
-		Size: Coordinate{
+		Size: models.Coordinate{
 			X: 10,
 			Y: 100,
 		},
 	},
 
-	Blue: Player{
-		Position: Coordinate{
+	Blue: models.ServerPlayer{
+		Position: models.Coordinate{
 			X: float32(SCREEN_WIDTH) - 10,
 			Y: 200,
 		},
-		Size: Coordinate{
+		Size: models.Coordinate{
 			X: 10,
 			Y: 100,
 		},
 	},
-	Ball: Ball{
-		Position: Coordinate{
+	Ball: models.ServerBall{
+		Position: models.Coordinate{
 			X: float32(SCREEN_WIDTH) / 2,
 			Y: float32(SCREEN_HEIGHT) / 2,
 		},
-		Speed: Coordinate{
+		Speed: models.Coordinate{
 			X: 3.0,
 			Y: 0.0,
 		},
@@ -85,10 +53,9 @@ func StartServer() {
 	if err != nil {
 		log.Fatalf("unable to start the server => Error:%v ", err.Error())
 	}
-	inputChan := make(chan InputMessage, 100)
-	// defer conn.Close()
+	inputChan := make(chan models.InputMessage, 100)
 	log.Printf("listening connection on port :8000")
-	// server listener routine that gonna listen from client
+	// INFO: server listener routine that gonna listen from client
 	go func() {
 		for {
 			var buf [10]byte
@@ -99,7 +66,7 @@ func StartServer() {
 			}
 			cmd := string(buf[:n])
 			// log.Printf("i receive and transfer: %v\n", cmd)
-			inputChan <- InputMessage{
+			inputChan <- models.InputMessage{
 				Cmd:  cmd,
 				Addr: addr.String(),
 			}
@@ -108,7 +75,7 @@ func StartServer() {
 
 	}()
 
-	// TODO: ball routine
+	// INFO: game state modifer and sender routine
 
 	go func() {
 		ticker := time.NewTicker(16 * time.Millisecond)
@@ -131,8 +98,6 @@ func StartServer() {
 					}
 
 					// TODO: only read sent value from the valid clients
-
-					// log.Printf("received: %v \n\n", string(msg.Cmd))
 
 					switch msg.Cmd {
 					case "R_J":
@@ -220,18 +185,18 @@ func StartServer() {
 						g.Ball.Position.X = g.Ball.Position.X + float32(g.Ball.Speed.X)
 						g.Ball.Position.Y = g.Ball.Position.Y + float32(g.Ball.Speed.Y)
 					} else {
-						g.Ball.Position = Coordinate{X: g.Red.Position.X + 2*g.Red.Size.X + g.Ball.Radius, Y: g.Red.Position.Y}
+						g.Ball.Position = models.Coordinate{X: g.Red.Position.X + 2*g.Red.Size.X + g.Ball.Radius, Y: g.Red.Position.Y}
 					}
 					// ball.Position.Y = ball.Position.Y + float32(ball.Speed.Y)
 					if g.Ball.Position.X <= 0 {
 						g.Blue.Score = g.Blue.Score + 1
-						// reset
-						g.Reset()
+						// TODO: reset
+						reset()
 					}
 					if g.Ball.Position.X >= float32(SCREEN_WIDTH) {
 						g.Red.Score = g.Red.Score + 1
-						// reset
-						g.Reset()
+						// TODO: reset
+						reset()
 					}
 
 					if g.Ball.Position.Y <= 0 {
@@ -248,12 +213,8 @@ func StartServer() {
 					}
 					log.Printf("new state |> %v \n", string(msg))
 
-					for _, c := range g.Conn {
-						if c != nil {
-							log.Printf("number ofcurrent client: %v\n", len(g.Conn))
-							log.Printf("client: %v", c)
-							conn.WriteTo(msg, c)
-						}
+					for _, addr := range g.Conn {
+						sendResponse(conn, addr, msg)
 					}
 
 				}
@@ -263,16 +224,13 @@ func StartServer() {
 	}()
 }
 
-func sendResponse(conn net.PacketConn, msg []byte) {
-	for _, c := range g.Conn {
-		if c != nil {
-			log.Printf("number ofcurrent client: %v\n", len(g.Conn))
-			conn.WriteTo(msg, c)
-		}
+func sendResponse(conn net.PacketConn, addr net.Addr, msg []byte) {
+	if addr != nil {
+		conn.WriteTo(msg, addr)
 	}
 }
 
-func (g *Game) Reset() {
+func reset() {
 	if g.Red.Score >= SCORE_LIMIT {
 		// rl.BeginDrawing()
 		// rl.ClearBackground(rl.Black)
@@ -315,7 +273,7 @@ func (g *Game) Reset() {
 	g.Red.Size.Y = 100
 
 	// INFO: reset ball
-	g.Ball.Position = Coordinate{X: g.Red.Position.X + 2*g.Red.Size.X + g.Ball.Radius, Y: g.Red.Position.Y}
+	g.Ball.Position = models.Coordinate{X: g.Red.Position.X + 2*g.Red.Size.X + g.Ball.Radius, Y: g.Red.Position.Y}
 	g.Ball.Speed.Y = 0.0
 	g.Ball.Speed.X = 3.0
 	g.Ball.IsActive = false
