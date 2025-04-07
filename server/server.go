@@ -88,7 +88,6 @@ func StartServer() {
 			case msg := <-inputChan:
 				{
 
-					log.Printf("received: %v \n\n", string(msg.Cmd))
 					if _, exists := g.Conn[msg.Addr]; !exists && len(g.Conn) < 2 {
 						udpAddr, err := net.ResolveUDPAddr("udp", msg.Addr)
 						if err == nil {
@@ -98,8 +97,6 @@ func StartServer() {
 					if err != nil {
 						log.Printf("unable to read: Error: %v\n", err.Error())
 					}
-
-					// TODO: only read sent value from the valid clients
 
 					switch msg.Cmd {
 					case "R_J":

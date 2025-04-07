@@ -16,8 +16,7 @@ func ListeningClient(input chan string, msg chan *model.Game) {
 	if err != nil {
 		log.Printf("client unable to connect upd server Error: %v ", err.Error())
 	}
-	log.Println("this does print out")
-	// listening routine from server
+	// INFO: listening routine from server
 	go func() {
 
 		res := make([]byte, 10240)
@@ -27,7 +26,6 @@ func ListeningClient(input chan string, msg chan *model.Game) {
 			if err != nil {
 				log.Printf("unable to start the server => Error:%v ", err.Error())
 			}
-			// log.Printf("Game value recevied: %v\n", string(res[:n]))
 
 			err = json.Unmarshal(res[:n], &g)
 			if err != nil {
@@ -41,19 +39,16 @@ func ListeningClient(input chan string, msg chan *model.Game) {
 			}
 		}
 	}()
-	// sending to server routine
+	// INFO: sending to server routine
 	go func() {
 		for {
 			select {
 			case i := <-input:
 				{
 					// log.Printf("i sent %v\n", i)
-					n, err := conn.Write([]byte(i))
+					_, err := conn.Write([]byte(i))
 					if err != nil {
 						log.Printf("error while sending: %v", err.Error())
-					} else {
-						_ = n
-						log.Printf("%d bytes sent to server\n", n)
 					}
 				}
 			}

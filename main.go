@@ -168,22 +168,4 @@ func reset() {
 	rl.DrawText(fmt.Sprintf("RED: %v |<=>| BLUE: %v", g.Red.Score, g.Blue.Score), int32(rl.GetScreenWidth()/2)-115, int32(rl.GetScreenHeight()/2), 24, rl.White)
 	rl.EndDrawing()
 	rl.WaitTime(2.5)
-
-	// // INFO: reset blue
-	// g.Blue.Position.X = float32(SCREEN_WIDTH) - 10
-	// g.Blue.Position.Y = 200
-	// g.Blue.Size.X = 10
-	// g.Blue.Size.Y = 100
-	//
-	// // INFO: reset red
-	// g.Red.Position.X = 0
-	// g.Red.Position.Y = 200
-	// g.Red.Size.X = 10
-	// g.Red.Size.Y = 100
-	//
-	// // INFO: reset ball
-	// g.Ball.Position = rl.Vector2{X: g.Red.Position.X + 2*g.Red.Size.X + g.Ball.Radius, Y: g.Red.Position.Y}
-	// g.Ball.Speed.Y = 0.0
-	// g.Ball.Speed.X = 3.0
-	// g.Ball.IsActive = false
 }
