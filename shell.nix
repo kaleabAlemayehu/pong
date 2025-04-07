@@ -16,7 +16,7 @@ pkgs.mkShell {
     pkgs.xorg.libXcursor
     pkgs.xorg.libXxf86vm
     pkgs.xorg.libXext
-    pkgs.xorg.libXi  # Required for XInput2.h
+    pkgs.xorg.libXi  
     pkgs.mesa
   ];
 }

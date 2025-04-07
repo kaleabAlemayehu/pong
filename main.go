@@ -1,12 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"playground/raylib-go/client"
+	model "playground/raylib-go/models"
 	"playground/raylib-go/server"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -16,28 +16,8 @@ const SCREEN_WIDTH int32 = 800
 const SCREEN_HEIGHT int32 = 450
 const SCORE_LIMIT int32 = 3
 
-type Ball struct {
-	Position rl.Vector2 `json:"position"`
-	Speed    rl.Vector2 `json:"speed"`
-	Radius   float32    `json:"radius"`
-	IsActive bool       `json:"is_active"`
-}
-
-type Player struct {
-	Position rl.Vector2 `json:"position"`
-	Size     rl.Vector2 `json:"size"`
-	Score    int32      `json:"score"`
-}
-
-type Game struct {
-	Red    Player         `json:"red"`
-	Blue   Player         `json:"blue"`
-	Ball   Ball           `json:"ball"`
-	Client *client.Client `json:"client"`
-}
-
-var g *Game = &Game{
-	Red: Player{
+var g *model.Game = &model.Game{
+	Red: model.Player{
 		Position: rl.Vector2{
 			X: 0,
 			Y: 200,
@@ -48,7 +28,7 @@ var g *Game = &Game{
 		},
 	},
 
-	Blue: Player{
+	Blue: model.Player{
 		Position: rl.Vector2{
 			X: float32(SCREEN_WIDTH) - 10,
 			Y: 200,
@@ -58,7 +38,7 @@ var g *Game = &Game{
 			Y: 100,
 		},
 	},
-	Ball: Ball{
+	Ball: model.Ball{
 		Position: rl.Vector2{
 			X: float32(SCREEN_WIDTH) / 2,
 			Y: float32(SCREEN_HEIGHT) / 2,
@@ -74,7 +54,7 @@ var g *Game = &Game{
 func main() {
 	host := flag.Bool("host", false, "to host server of the game")
 	flag.Parse()
-	message := make(chan []byte, 10000)
+	message := make(chan *model.Game, 10000)
 	input := make(chan string, 10000)
 
 	if *host == true {
@@ -93,14 +73,8 @@ func main() {
 		case msg, ok := <-message:
 			if !ok {
 				log.Printf("there is something wrong with the recieved data\n")
-
 			}
-			log.Printf("value: %v", string(msg))
-			err := json.Unmarshal(msg, g)
-			if err != nil {
-				log.Printf("error happend when recieved data from the server unmarshaled\n")
-				// log.Printf("the error: %v", err.Error())
-			}
+			g = msg
 
 		default:
 			handleMovement(input)
