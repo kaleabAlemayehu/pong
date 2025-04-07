@@ -167,12 +167,23 @@ func StartServer() {
 							g.Ball.Speed.Y = (g.Ball.Position.Y - g.Blue.Position.Y) / (g.Blue.Size.Y / 2) * 5
 
 						}
-					case "START":
+					case "START_R":
 						{
+							if !g.Ball.IsActive {
+								g.Ball.IsActive = true
+								g.Ball.Speed.X = 3.0
 
-							g.Ball.IsActive = true
+							}
+
 						}
+					case "START_B":
+						{
+							if !g.Ball.IsActive {
+								g.Ball.Speed.X = -3.0
+								g.Ball.IsActive = true
 
+							}
+						}
 					default:
 
 					}
@@ -211,7 +222,7 @@ func StartServer() {
 						log.Println("unable to marshal the message")
 						log.Printf("error: %v \n", err.Error())
 					}
-					// log.Printf("new state |> %v \n", string(msg))
+					log.Printf("new state |> %v \n", string(msg))
 
 					for _, addr := range g.Conn {
 						sendResponse(conn, addr, msg)

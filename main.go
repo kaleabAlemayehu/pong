@@ -129,6 +129,9 @@ func handleMovement(input chan string) {
 		if rl.IsKeyDown(rl.KeyL) {
 			input <- "R_L"
 		}
+		if rl.IsKeyDown(rl.KeySpace) {
+			input <- "START_R"
+		}
 	} else {
 		if rl.IsKeyDown(rl.KeyH) {
 			input <- "B_H"
@@ -144,9 +147,9 @@ func handleMovement(input chan string) {
 		if rl.IsKeyDown(rl.KeyK) {
 			input <- "B_K"
 		}
-	}
-	if rl.IsKeyDown(rl.KeySpace) {
-		input <- "START"
+		if rl.IsKeyDown(rl.KeySpace) {
+			input <- "START_B"
+		}
 	}
 }
 
