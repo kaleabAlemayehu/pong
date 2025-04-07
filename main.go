@@ -16,6 +16,8 @@ const SCREEN_WIDTH int32 = 800
 const SCREEN_HEIGHT int32 = 450
 const SCORE_LIMIT int32 = 3
 
+var IS_RED bool
+
 var g *model.Game = &model.Game{
 	Red: model.Player{
 		Position: rl.Vector2{
@@ -58,6 +60,7 @@ func main() {
 	input := make(chan string, 10000)
 
 	if *host == true {
+		IS_RED = true
 		server.StartServer()
 	}
 
@@ -112,32 +115,35 @@ func main() {
 }
 
 func handleMovement(input chan string) {
-	if rl.IsKeyDown(rl.KeyJ) {
-		input <- "R_J"
-	}
-	if rl.IsKeyDown(rl.KeyK) {
-		input <- "R_K"
-	}
-	if rl.IsKeyDown(rl.KeyH) {
-		input <- "R_H"
-	}
-	if rl.IsKeyDown(rl.KeyL) {
-		input <- "R_L"
-	}
+	if IS_RED {
 
-	if rl.IsKeyDown(rl.KeyA) {
-		input <- "B_H"
-	}
+		if rl.IsKeyDown(rl.KeyJ) {
+			input <- "R_J"
+		}
+		if rl.IsKeyDown(rl.KeyK) {
+			input <- "R_K"
+		}
+		if rl.IsKeyDown(rl.KeyH) {
+			input <- "R_H"
+		}
+		if rl.IsKeyDown(rl.KeyL) {
+			input <- "R_L"
+		}
+	} else {
+		if rl.IsKeyDown(rl.KeyH) {
+			input <- "B_H"
+		}
 
-	if rl.IsKeyDown(rl.KeyF) {
-		input <- "B_L"
-	}
+		if rl.IsKeyDown(rl.KeyL) {
+			input <- "B_L"
+		}
 
-	if rl.IsKeyDown(rl.KeyS) {
-		input <- "B_J"
-	}
-	if rl.IsKeyDown(rl.KeyD) {
-		input <- "B_K"
+		if rl.IsKeyDown(rl.KeyJ) {
+			input <- "B_J"
+		}
+		if rl.IsKeyDown(rl.KeyK) {
+			input <- "B_K"
+		}
 	}
 	if rl.IsKeyDown(rl.KeySpace) {
 		input <- "START"
