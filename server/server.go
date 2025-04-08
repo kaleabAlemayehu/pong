@@ -73,7 +73,7 @@ func StartServer() {
 				log.Printf("error when setup: %v", err.Error())
 			}
 			cmd := string(buf[:n])
-			log.Printf("i receive and transfer: %v\n", cmd)
+			// log.Printf("i receive and transfer: %v\n", cmd)
 			inputChan <- models.InputMessage{
 				Cmd:  cmd,
 				Addr: addr.String(),
@@ -231,6 +231,7 @@ func StartServer() {
 					// log.Printf("new state |> %v \n", string(msg))
 
 					for _, addr := range g.Conn {
+						// log.Printf("client: %v", addr)
 						sendResponse(conn, addr, msg)
 					}
 

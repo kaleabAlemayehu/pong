@@ -53,7 +53,7 @@ func ListeningClient(input chan string, msg chan *model.Game, localAddr string) 
 			select {
 			case i := <-input:
 				{
-					log.Printf("i sent %v\n", i)
+					// log.Printf("i sent %v\n", i)
 					_, err := conn.Write([]byte(i))
 					if err != nil {
 						log.Printf("error while sending: %v", err.Error())

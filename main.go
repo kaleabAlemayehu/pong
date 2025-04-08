@@ -55,7 +55,7 @@ var g *model.Game = &model.Game{
 
 func main() {
 	host := flag.Bool("host", false, "to host server of the game")
-	serverIp := flag.String("server", "", "ip address of the server")
+	serverIp := flag.String("join", "", "ip address of the server")
 	flag.Parse()
 	message := make(chan *model.Game, 10000)
 	input := make(chan string, 10000)
