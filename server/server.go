@@ -51,12 +51,18 @@ var g *models.ServerGame = &models.ServerGame{
 }
 
 func StartServer() {
+
+	// INFO: trick to get local ip by making udp request for google dns
+	connection, err := net.Dial("udp", "8.8.8.8:80")
+	defer connection.Close()
+	localAddr := connection.LocalAddr().(*net.UDPAddr).IP
 	conn, err := net.ListenPacket("udp", ":8000")
 	if err != nil {
 		log.Fatalf("unable to start the server => Error:%v ", err.Error())
 	}
 	inputChan := make(chan models.InputMessage, 100)
-	log.Printf("listening connection on port :8000")
+
+	log.Printf("listening connection on port %v:8000", localAddr)
 	// INFO: server listener routine that gonna listen from client
 	go func() {
 		for {
@@ -67,7 +73,7 @@ func StartServer() {
 				log.Printf("error when setup: %v", err.Error())
 			}
 			cmd := string(buf[:n])
-			// log.Printf("i receive and transfer: %v\n", cmd)
+			log.Printf("i receive and transfer: %v\n", cmd)
 			inputChan <- models.InputMessage{
 				Cmd:  cmd,
 				Addr: addr.String(),
@@ -222,7 +228,7 @@ func StartServer() {
 						log.Println("unable to marshal the message")
 						log.Printf("error: %v \n", err.Error())
 					}
-					log.Printf("new state |> %v \n", string(msg))
+					// log.Printf("new state |> %v \n", string(msg))
 
 					for _, addr := range g.Conn {
 						sendResponse(conn, addr, msg)
