@@ -55,6 +55,7 @@ var g *model.Game = &model.Game{
 
 func main() {
 	host := flag.Bool("host", false, "to host server of the game")
+	serverIp := flag.String("join", "", "ip address of the server")
 	flag.Parse()
 	message := make(chan *model.Game, 10000)
 	input := make(chan string, 10000)
@@ -64,10 +65,11 @@ func main() {
 		server.StartServer()
 	}
 
+	rl.SetTraceLogLevel(rl.LogError)
 	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "pong")
 	defer rl.CloseWindow()
 
-	client.ListeningClient(input, message)
+	client.ListeningClient(input, message, *serverIp)
 
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {
@@ -129,6 +131,9 @@ func handleMovement(input chan string) {
 		if rl.IsKeyDown(rl.KeyL) {
 			input <- "R_L"
 		}
+		if rl.IsKeyDown(rl.KeySpace) {
+			input <- "START_R"
+		}
 	} else {
 		if rl.IsKeyDown(rl.KeyH) {
 			input <- "B_H"
@@ -144,9 +149,9 @@ func handleMovement(input chan string) {
 		if rl.IsKeyDown(rl.KeyK) {
 			input <- "B_K"
 		}
-	}
-	if rl.IsKeyDown(rl.KeySpace) {
-		input <- "START"
+		if rl.IsKeyDown(rl.KeySpace) {
+			input <- "START_B"
+		}
 	}
 }
 
